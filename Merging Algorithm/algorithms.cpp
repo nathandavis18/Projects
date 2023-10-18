@@ -209,8 +209,8 @@ int main(){
     std::vector<Pair> v1;
     std::vector<Pair> v2;
 
-    v1 = genData(100000);
-    v2 = genData(100000);
+    v1 = genData(1000000);
+    v2 = genData(1000000);
     std::sort(v1.begin(), v1.end());
     std::sort(v2.begin(), v2.end());
 
