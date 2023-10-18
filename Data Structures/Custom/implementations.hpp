@@ -22,7 +22,7 @@ namespace custom{
         const int subArray1 = mid - left + 1;
         const int subArray2 = right - mid;
 
-        input leftArray(subArray1);
+        input leftArray(subArray1); //An array or vector which is the same type as the inputted vector, a type-independent array
         input rightArray(subArray2);
 
         for(int i = 0; i < subArray1; ++i)
