@@ -11,11 +11,11 @@ namespace custom{
         using reference = T&;
 
         myIterator(pointer p) : ptr(p) {}
-        reference operator*() const { return *ptr; }
+        reference operator*() const { return *ptr; } //Dereference operator
         pointer operator->() { return ptr; }
-        void operator=(pointer t) { ptr = t; }
-        void operator=(reference t) { *ptr = t; }
-        myIterator& operator++() { ptr++; return *this; }
+        void operator=(pointer t) { ptr = t; } //current pointer points to what t is pointing to
+        void operator=(reference t) { *ptr = t; } //Current value ptr is pointing to is given the value t
+        myIterator& operator++() { ptr++; return *this; } //Increment operators
         myIterator operator++(value_type) { myIterator tmp = *this; ++(*this); return tmp; }
 
         friend bool operator== (const myIterator& a, const myIterator& b) { return a.ptr == b.ptr; }

@@ -1,6 +1,6 @@
 namespace custom{
     template<class input>
-    void _sort(input& in, int left, int mid, int right){
+    void _sort(input& in, int left, int mid, int right){ //Merge sort algorithm
         const int subArray1 = mid - left + 1;
         const int subArray2 = right - mid;
 
