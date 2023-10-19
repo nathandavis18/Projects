@@ -14,6 +14,7 @@ namespace custom{
         reference operator*() const { return *ptr; }
         pointer operator->() { return ptr; }
         void operator=(pointer t) { ptr = t; }
+        void operator=(reference t) { *ptr = t; }
         myIterator& operator++() { ptr++; return *this; }
         myIterator operator++(value_type) { myIterator tmp = *this; ++(*this); return tmp; }
 
