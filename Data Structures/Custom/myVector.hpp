@@ -5,17 +5,19 @@ namespace custom{
     template <typename T>
     class myVector{
     public:
-        myVector() : size(0), buffer(new T[0]) {}
+        using value_type = T;
+
+        myVector() : size(0), buffer(new value_type[0]) {}
         myVector(const myVector& vec){ //Copy Constructor
             size = vec.getSize();
-            buffer = new T[size];
+            buffer = new value_type[size];
             for(int i = 0; i < size; ++i){
                 buffer[i] = vec[i];
             }
         }
         myVector(const unsigned long long capacity){ //Capacity constructor
             size = capacity;
-            buffer = new T[size];
+            buffer = new value_type[size];
         }
         ~myVector(){
             delete[] buffer;
@@ -26,20 +28,24 @@ namespace custom{
             return *this;
         }
 
-        T& operator[](int index) const& {
+        void operator=(value_type obj){
+            this = obj;
+        }
+
+        value_type& operator[](int index) const& {
             return buffer[index];
         }
 
-        T& at(int index){
+        value_type& at(int index){
             if(index > 0 && index < size){
                 return buffer[index];
             }
             throw std::out_of_range("Invalid index");
         }
 
-        void push_back(T data){
+        void push_back(value_type data){
             unsigned long long newSize = size + 1;
-            T* newBuffer = new T[newSize];
+            value_type* newBuffer = new value_type[newSize];
 
             for(unsigned long long i = 0; i < size; ++i){
                 newBuffer[i] = buffer[i];
@@ -50,9 +56,9 @@ namespace custom{
 
             buffer[size - 1] = data;
         }
-        void push_front(T data){
+        void push_front(value_type data){
             unsigned long long newSize = size + 1;
-            T* newBuffer = new T[newSize];
+            value_type* newBuffer = new value_type[newSize];
             
             newBuffer[0] = data;
             for(unsigned long long i = 0; i < size; ++i){
@@ -73,15 +79,15 @@ namespace custom{
             --size;
             buffer[size] = 0;
         }
-        myIterator<T> begin(){
-            return myIterator<T>(&buffer[0]);
+        myIterator<value_type> begin(){
+            return myIterator<value_type>(&buffer[0]);
         }
-        myIterator<T> end(){
-            return myIterator<T>(&buffer[size]);
+        myIterator<value_type> end(){
+            return myIterator<value_type>(&buffer[size]);
         }
         constexpr unsigned long long getSize() const& { return size; }
     private:
-        T* buffer;
+        value_type* buffer;
         unsigned long long size;
 
         void swap(myVector& cur) noexcept{
