@@ -1,3 +1,5 @@
+#ifndef MERGE
+#define MERGE
 namespace custom{
     template<class input, class output>
     output merge(input first1, input last1, input first2, input last2, output d_first){ //Merges two vectors together, much like std::merge
@@ -18,3 +20,4 @@ namespace custom{
         return std::copy(first2, last2, d_first); //Copy the remaining elements from vector 2 to the new vector
     }
 }
+#endif //MERGE

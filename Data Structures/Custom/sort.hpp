@@ -1,3 +1,5 @@
+#ifndef SORT
+#define SORT
 namespace custom{
     template<class input>
     void _sort(input& in, int left, int mid, int right){ //Merge sort algorithm
@@ -48,3 +50,4 @@ namespace custom{
         _sort(in, start, mid, last);
     }
 }
+#endif //SORT

@@ -1,7 +1,8 @@
-#include <iterator>
+#ifndef MYVEC
+#define MYVEC
 #include "myIterator.hpp"
-
 namespace custom{
+
     template <typename T>
     class myVector{
     public:
@@ -24,12 +25,16 @@ namespace custom{
             delete[] buffer;
         }
 
-        myVector& operator=(myVector tmp){ //moves all the elements from tmp into the current vector
+        myVector& operator=(myVector& tmp){ //moves all the elements from tmp into the current vector
             tmp.swap(*this);
             return *this;
         }
 
-        value_type& operator[](int index) const& { //Gets the value at the given index, without exception handling
+        [[nodiscard]] value_type& operator[](size_t index) noexcept{
+            return buffer[index];
+        }
+
+        [[nodiscard]] const value_type& operator[](int index) const noexcept { //Gets the value at the given index, without exception handling
             return buffer[index];
         }
 
@@ -40,7 +45,14 @@ namespace custom{
             throw std::out_of_range("Invalid index");
         }
 
-        void push_back(value_type data){ //Adds a new value to the back of the vector
+        const value_type& at(int index) const { //Gets the value at the given index, with exception handling
+            if(index > 0 && index < size){
+                return buffer[index];
+            }
+            throw std::out_of_range("Invalid index");
+        }
+
+        void push_back(value_type& data){ //Adds a new value to the back of the vector
             unsigned long long newSize = size + 1;
             value_type* newBuffer = new value_type[newSize];
 
@@ -53,7 +65,7 @@ namespace custom{
 
             buffer[size - 1] = data;
         }
-        void push_front(value_type data){ //Adds the new value to the front of the vector, after moving everything forward one position
+        void push_front(value_type& data){ //Adds the new value to the front of the vector, after moving everything forward one position
             unsigned long long newSize = size + 1;
             value_type* newBuffer = new value_type[newSize];
             
@@ -86,7 +98,7 @@ namespace custom{
             return myIterator<value_type>(&buffer[size]);
         }
 
-        constexpr unsigned long long getSize() const& { return size; }
+        const unsigned long long getSize() const { return size; }
 
     private:
         value_type* buffer;
@@ -98,3 +110,4 @@ namespace custom{
         }
     };
 }
+#endif //MYVEC
