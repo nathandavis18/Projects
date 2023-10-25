@@ -17,7 +17,7 @@ namespace custom{
                 buffer[i] = vec[i];
             }
         }
-        myVector(const unsigned long long capacity){ //Capacity constructor
+        myVector(const size_t capacity){ //Capacity constructor
             size = capacity;
             buffer = new value_type[size];
         }
@@ -25,7 +25,7 @@ namespace custom{
             delete[] buffer;
         }
 
-        myVector& operator=(myVector& tmp){ //moves all the elements from tmp into the current vector
+        const myVector& operator=(myVector& tmp) const { //moves all the elements from tmp into the current vector
             tmp.swap(*this);
             return *this;
         }
@@ -52,60 +52,58 @@ namespace custom{
             throw std::out_of_range("Invalid index");
         }
 
-        void push_back(value_type& data){ //Adds a new value to the back of the vector
-            unsigned long long newSize = size + 1;
+        void push_back(const value_type& data){ //Adds a new value to the back of the vector
+            size_t newSize = size + 1;
             value_type* newBuffer = new value_type[newSize];
 
-            for(unsigned long long i = 0; i < size; ++i){
+            for(size_t i = 0; i < size; ++i){
                 newBuffer[i] = buffer[i];
             }
-            size = newSize;
+            std::swap(size, newSize);
             std::swap(buffer, newBuffer);
             delete[] newBuffer;
 
             buffer[size - 1] = data;
         }
-        void push_front(value_type& data){ //Adds the new value to the front of the vector, after moving everything forward one position
-            unsigned long long newSize = size + 1;
+        void push_front(const value_type& data){ //Adds the new value to the front of the vector, after moving everything forward one position
+            size_t newSize = size + 1;
             value_type* newBuffer = new value_type[newSize];
             
             newBuffer[0] = data;
-            for(unsigned long long i = 0; i < size; ++i){
+            for(size_t i = 0; i < size; ++i){
                 newBuffer[i + 1] = buffer[i];
             }
-            size = newSize;
+            std::swap(size, newSize);
             std::swap(buffer, newBuffer);
             delete[] newBuffer;
         }
 
         void pop_back(){ //Removes the last element and decreases the size of the vector
             --size;
-            buffer[size] = 0;
         }
         void pop_front(){ //Removes the first element, moves everything forward, and decreases the size
             for(int i = 1; i < size; ++i){
                 buffer[i - 1] = buffer[i];
             }
             --size;
-            buffer[size] = 0;
         }
 
-        myIterator<value_type> begin(){ //Returns a custom iterator to the first element in the vector
+        const myIterator<value_type> begin() const { //Returns a custom iterator to the first element in the vector
             return myIterator<value_type>(&buffer[0]);
         }
 
-        myIterator<value_type> end(){ //Returns a custom iterator just beyond the vector
+        const myIterator<value_type> end() const { //Returns a custom iterator just beyond the vector
             return myIterator<value_type>(&buffer[size]);
         }
 
-        const unsigned long long getSize() const { return size; }
+        const size_t getSize() const { return size; }
 
     private:
         value_type* buffer;
-        unsigned long long size;
+        size_t size;
 
         void swap(myVector& cur) noexcept{
-            size = cur.size;
+            std::swap(size, cur.size);
             std::swap(buffer, cur.buffer);
         }
     };

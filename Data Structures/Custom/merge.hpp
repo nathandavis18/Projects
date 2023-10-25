@@ -1,8 +1,8 @@
 #ifndef MERGE
 #define MERGE
 namespace custom{
-    template<class input, class output>
-    output merge(input first1, input last1, input first2, input last2, output d_first){ //Merges two vectors together, much like std::merge
+    template<typename InputIterator, class OutputIterator>
+    OutputIterator merge(InputIterator first1, InputIterator last1, InputIterator first2, InputIterator last2, OutputIterator d_first){ //Merges two vectors together, much like std::merge
         while(first1 != last1){
             if(first2 == last2){
                 return std::copy(first1, last1, d_first); //If we have reached the end of the 2nd vector, then we just move the remaining elements from vector 1 into the new vector
