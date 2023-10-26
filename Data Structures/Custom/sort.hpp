@@ -1,6 +1,5 @@
 #ifndef SORT
 #define SORT
-#include <vector>
 
 namespace detail{
     template<class inputIter>
