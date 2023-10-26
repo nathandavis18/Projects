@@ -25,6 +25,15 @@ namespace custom{
             delete[] buffer;
         }
 
+        friend auto operator==(const myVector& a, const myVector& b) { //Tests if two custom vectors are equal
+            if(a.getSize() != b.getSize()) return false;
+            for(int i = 0; i < a.getSize(); ++i) { 
+                if(a[i] != b[i]) return false;
+                
+            }
+            return true;
+        }
+
         const myVector& operator=(myVector& tmp) const { //moves all the elements from tmp into the current vector
             tmp.swap(*this);
             return *this;
