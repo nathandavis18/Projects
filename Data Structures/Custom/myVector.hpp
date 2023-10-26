@@ -1,6 +1,7 @@
 #ifndef MYVEC
 #define MYVEC
 #include "myIterator.hpp"
+#include <vector>
 namespace custom{
 
     template <typename T>
@@ -33,14 +34,18 @@ namespace custom{
             }
             return true;
         }
+        friend auto operator==(const myVector& a, const std::vector<T>& b) { //Tests if a std::vector and myVector are equal
+            if(a.getSize() != b.size()) return false;
+            for(int i = 0; i < a.getSize(); ++i) { 
+                if(a[i] != b[i]) return false;
+                
+            }
+            return true;
+        }
 
         const myVector& operator=(myVector& tmp) const { //moves all the elements from tmp into the current vector
             tmp.swap(*this);
             return *this;
-        }
-
-        [[nodiscard]] value_type& operator[](size_t index) noexcept{
-            return buffer[index];
         }
 
         [[nodiscard]] const value_type& operator[](int index) const noexcept { //Gets the value at the given index, without exception handling

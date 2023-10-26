@@ -21,8 +21,8 @@ namespace detail{
         size_t sizeRight = (end - 1) - mid;
 
         using T = std::iterator_traits<inputIter>::value_type;
-        T* leftArray = new T[sizeLeft + 2]; //sub arrays of odd sizes can result in the extra element in either the left or the right sub array
-        T* rightArray = new T[sizeRight + 2]; //So we must account for that 1 additional slot
+        T* leftArray = new T[sizeLeft + 1]; //sub arrays of odd sizes can result in the extra element in either the left or the right sub array
+        T* rightArray = new T[sizeRight + 1]; //So we must account for that 1 additional slot
 
         for(int i = 0; i < mid - begin; ++i){ //Array [begin, mid)
             leftArray[i] = *(begin + i);
