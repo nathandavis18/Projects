@@ -17,7 +17,7 @@ namespace custom{
         T* operator->() { return ptr; }
         myIterator& operator++() { ptr++; return *this; } //Increment operators
         myIterator operator++(int) { myIterator tmp = *this; ++(*this); return tmp; }
-        myIterator& operator--() { ptr--; return *this; } //Increment operators 
+        myIterator& operator--() { ptr--; return *this; } //Decrement operators 
         myIterator operator--(int) { myIterator tmp = *this; --(*this); return tmp; }
         myIterator& operator+=(const difference_type m) { ptr += m; return *this; }
         myIterator& operator-=(const difference_type m) { ptr -= m; return *this; }        
