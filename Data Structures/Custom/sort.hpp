@@ -1,84 +1,190 @@
 #ifndef SORT
 #define SORT
-
+#include <cmath>
 namespace detail{
-    template<class inputIter>
-    void insertion_sort(inputIter& start, inputIter& last){
-        int i = 1;
-        while(i < last - start){
-            int j = i;
-            while(j > 0 && *(start + (j - 1)) > *(start + j)){
-                std::swap(*(start + (j - 1)), *(start + j));
-                --j;
-            }
-            ++i;
+    /**
+     * Heapsort
+    */
+    template<typename Iter>
+    constexpr void pop_heap(Iter first, Iter last, Iter result){
+        typedef typename std::iterator_traits<Iter>::value_type ValueType;
+        typedef typename std::iterator_traits<Iter>::difference_type DistanceType;
+
+        ValueType val = std::move(*result);
+        *result = std::move(*first);
+    }
+
+    template<typename Iter>
+    constexpr void my_sort_heap(Iter first, Iter last){
+        while(last - first > 1){
+            --last;
+            pop_heap(first, last, last);
         }
     }
-    template<class inputIter>
-    void merge(inputIter& begin, inputIter& mid, inputIter& end){
-        size_t sizeLeft = mid - begin;
-        size_t sizeRight = (end - 1) - mid;
 
-        using T = std::iterator_traits<inputIter>::value_type;
-        T* leftArray = new T[sizeLeft + 1]; //sub arrays of odd sizes can result in the extra element in either the left or the right sub array
-        T* rightArray = new T[sizeRight + 1]; //So we must account for that 1 additional slot
-
-        for(int i = 0; i < mid - begin; ++i){ //Array [begin, mid)
-            leftArray[i] = *(begin + i);
+    template<class Iter, class Distance, class Type>
+    constexpr void push_heap(Iter first, Distance index, Distance topIndex, Type val){
+        Distance parent = (index - 1) / 2;
+        while(index > topIndex && *(first + parent) < val){
+            *(first + index) = std::move(*(first + parent));
+            index = parent;
+            parent = (index - 1) / 2;
         }
-        for(int i = 0; i < end - mid; ++i){ //Array [mid, end)
-            rightArray[i] = *(mid + i);
-        }
+        *(first + index) = std::move(val);
+    }
 
-        size_t indexLeft = 0, indexRight = 0, indexMerge = 0;
-        while(indexLeft < sizeLeft && indexRight < sizeRight){
-            if(leftArray[indexLeft] <= rightArray[indexRight]){
-                *(begin + indexMerge) = leftArray[indexLeft];
-                ++indexLeft;
+    template<class Iter, class Distance, class Type>
+    constexpr void adjust_heap(Iter first, Distance index, Distance length, Type val){
+        const Distance topIndex = index;
+        Distance child = index;
+        while(child < (length - 1) / 2){
+            child = 2 * (child + 1);
+            if(*(first + child) < *(first + (child - 1))) --child;
+            *(first + index) = std::move(*(first + child));
+            index = child;
+        }
+        if((length & 1) == 0 && child == (length - 2) / 2){
+            child = 2 * (child + 1);
+            *(first + index) = std::move(*(first + (child - 1)));
+            index = child - 1;
+            push_heap(first, index, topIndex, std::move(val));
+        }
+    }
+
+    template<typename Iter>
+    constexpr void my_make_heap(Iter first, Iter last){
+        if(last - first < 2) return; //Arrays of size 0 and 1 are sorted
+        typedef typename std::iterator_traits<Iter>::value_type ValueType;
+        typedef typename std::iterator_traits<Iter>::difference_type DistanceType;
+
+        const DistanceType length = last - first;
+        DistanceType parent = (length - 2) / 2;
+        while(true){
+            ValueType val = std::move(*(first + parent));
+            adjust_heap(first, parent, length, std::move(val));
+            if(parent == 0) return;
+            --parent;
+        }
+    }
+
+    template<typename Iter>
+    constexpr void heap_select(Iter first, Iter middle, Iter last){
+        my_make_heap(first, middle);
+        for(Iter i = middle; i < last; ++i){
+            if(*i < *first) pop_heap(first, middle, i);
+        }
+    }
+
+    template<typename Iter>
+    constexpr void partial_sort(Iter first, Iter middle, Iter last){
+        heap_select(first, middle, last);
+        my_sort_heap(first, middle);
+    }
+
+    /**
+     * Quicksort
+    */
+    template<typename Iter>
+    constexpr Iter unguarded_partition(Iter first, Iter last, Iter pivot){
+        while(true){
+            while(*first < *pivot){
+                ++first;
+            }
+            --last;
+            while(*pivot < *last){
+                --last;
+            }
+            if(!(first < last)) return first;
+            std::iter_swap(first, last);
+            ++first;
+        }
+    }
+
+    template<typename Iter>
+    constexpr void move_median_to_first(Iter result, Iter a, Iter b, Iter c){
+        if(*a < *b){
+            if(*b < *c) std::iter_swap(result, b);
+            else if(*a < *c) std::iter_swap(result, c);
+            else std::iter_swap(result, a);
+        }
+        else if(*a < *c) std::iter_swap(result, a);
+        else if(*b < *c) std::iter_swap(result, c);
+        else std::iter_swap(result, b);
+    }
+
+    template<typename Iter>
+    constexpr Iter get_pivot(Iter first, Iter last){
+        Iter mid = first + (last - first) / 2;
+        move_median_to_first(first, first + 1, mid, last - 1);
+        return unguarded_partition(first + 1, last, first);
+    }
+
+    /**
+     * Insertion sort stuff
+    */
+    template<typename Iter>
+    constexpr void linear_insert(Iter last){
+        typename std::iterator_traits<Iter>::value_type
+        val = std::move(*last);
+        Iter next = last;
+        --next;
+        while(val < *next){
+            *last = std::move(*next);
+            last = next;
+            --next;
+        }
+        *last = std::move(val);
+    }
+    template<typename Iter>
+    constexpr void insertion_sort(Iter first, Iter last){
+        if(first == last) return;
+        for(Iter i = first + 1; i != last; ++i){
+            if(*i < *first){
+                typename std::iterator_traits<Iter>::value_type 
+                val = std::move(*i);
+                std::move_backward(first, i, i + 1);
+                *first = std::move(val);
             }
             else{
-                *(begin + indexMerge) = rightArray[indexRight];
-                ++indexRight;
+                linear_insert(i);
             }
-            ++indexMerge;
         }
-
-        while(indexLeft < sizeLeft){
-            *(begin + indexMerge) = leftArray[indexLeft];
-            ++indexLeft;
-            ++indexMerge;
-        } 
-
-        while(indexRight < sizeRight){
-            *(begin + indexMerge) = rightArray[indexRight];
-            ++indexRight;
-            ++indexMerge;
+    }
+    template<typename Iter>
+    constexpr void unguarded_insertion_sort(Iter first, Iter last){
+        for(Iter i = first; i != last; ++i){
+            linear_insert(i);
         }
-
-        delete[] leftArray;
-        delete[] rightArray;
+    }
+    template<typename Iter>
+    constexpr void final_insertion_sort(Iter first, Iter last){
+        if(last - first > 16){
+            insertion_sort(first, first + 16);
+            unguarded_insertion_sort(first + 16, last);
+        }
+        else insertion_sort(first, last);
     }
 }
 namespace custom{
-    template<class inputIter>
-    void _sort(inputIter& begin, inputIter& end){
-        size_t length = end - begin;
-        if(length <= 20){
-            detail::insertion_sort(begin, end);
-        }
-        else{
-            inputIter mid = begin + ((end - begin) / 2);
-            inputIter mid2 = mid + 1;
-            _sort(begin, mid2);
-            _sort(mid, end);
-            detail::merge(begin, mid, end);
+    template<typename Iter>
+    void introsort(Iter first, Iter last, size_t max_depth){
+        while(last - first > 16){
+            if(max_depth == 0){
+                detail::partial_sort(first, last, last);
+                return;
+            }
+            --max_depth;
+            Iter p = detail::get_pivot(first, last);
+            introsort(p, last, max_depth);
+            last = p;
         }
     }
-    template<class inputIter>
-    void sort(inputIter& begin, inputIter& end){
-        if(begin >= end) return;
-
-        _sort(begin, end);
+    template<typename Iter>
+    void sort(Iter first, Iter last){
+        size_t max_depth = std::log2(last - first) * 2;
+        if(first >= last) return;
+        introsort(first, last, max_depth);
+        detail::final_insertion_sort(first, last);
     }
 }
 #endif //SORT
