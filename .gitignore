@@ -2,3 +2,5 @@
 Data Structures/Custom/test
 Data Structures/Custom/test.cpp
 .vscode/settings.json
+.vscode/launch.json
+myVector.natvis
