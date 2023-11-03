@@ -165,6 +165,10 @@ namespace detail{
         else insertion_sort(first, last);
     }
 }
+
+/**
+ * Entry Point for user is custom::sort
+*/
 namespace custom{
     template<typename Iter>
     void introsort(Iter first, Iter last, size_t max_depth){

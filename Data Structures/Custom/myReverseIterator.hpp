@@ -15,9 +15,9 @@ namespace custom{
         myReverseIterator(T* p) : ptr(p) {}
         T& operator*() const { return *ptr; } //Dereference operator
         T* operator->() { return ptr; }
-        myReverseIterator& operator++() { ptr--; return *this; } //Increment operators
+        myReverseIterator& operator++() { ptr--; return *this; } //Increment operators. Reverse iterator goes backwards when incremented
         myReverseIterator operator++(int) { myReverseIterator tmp = *this; --(*this); return tmp; }
-        myReverseIterator& operator--() { ptr++; return *this; } //Decrement operators 
+        myReverseIterator& operator--() { ptr++; return *this; } //Decrement operators. Reverse iterator goes forwards when decremented
         myReverseIterator operator--(int) { myReverseIterator tmp = *this; ++(*this); return tmp; }
         myReverseIterator& operator+=(const difference_type m) { ptr -= m; return *this; }
         myReverseIterator& operator-=(const difference_type m) { ptr += m; return *this; }        
