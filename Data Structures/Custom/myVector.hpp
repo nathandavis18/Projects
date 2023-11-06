@@ -151,7 +151,7 @@ namespace custom{
             realloc(capacity);
         }
 
-        void resize(size_t newSize) noexcept {
+        void resize(size_t newSize) {
             if(newSize < size()){
                 while(m_finish != buffer + newSize){
                     (*--m_finish).~value_type();
@@ -174,7 +174,7 @@ namespace custom{
             }
         }
 
-        void shrink_to_fit() noexcept { //Deallocates space such that the vector will have size == capacity
+        void shrink_to_fit() { //Deallocates space such that the vector will have size == capacity
             if(m_capacity == size()) return; //Already properly shrunk
 
             size_t tmpCapacity = size();
@@ -206,7 +206,9 @@ namespace custom{
         template<class Iter>
         void insert(Iter it, const_reference value){
             if(size() == m_capacity){
+                size_t offset = it - begin(); //Get the iterator's offset so we don't lose it after reallocation
                 realloc();
+                it = begin() + offset; //Set the iterator back to the correct offset, since data may have been moved to a new location after reallocation.
             }
             move_forward(it, end());
             std::construct_at(buffer + (it - begin()), value);
@@ -287,23 +289,32 @@ namespace custom{
                 (*(buff + i)).~value_type();
             }
         }
-        void realloc(size_t& capacity = 0){
-            size_t tmpCapacity = capacity == 0 ? newCapacity() : capacity;
-            pointer newBuffer = allocator.allocate(tmpCapacity);
-            pointer newFinish = newBuffer;
-            for(size_t i = 0; i < size(); ++i){
-                std::construct_at(newBuffer + i, std::move_if_noexcept(*(buffer + i)));
-                ++newFinish;
-            }
-            std::swap(m_capacity, tmpCapacity);
-            std::swap(buffer, newBuffer);
-            std::swap(m_finish, newFinish);
+        void realloc(size_t capacity = 0){
+            pointer newFinish, newBuffer;
+            size_t tmpCapacity;
+            try{
+                tmpCapacity = capacity == 0 ? newCapacity() : capacity;
+                newBuffer = allocator.allocate(tmpCapacity);
+                newFinish = newBuffer;
+                for(size_t i = 0; i < size(); ++i){
+                    std::construct_at(newBuffer + i, std::move_if_noexcept(*(buffer + i)));
+                    ++newFinish;
+                }
+                std::swap(m_capacity, tmpCapacity);
+                std::swap(buffer, newBuffer);
+                std::swap(m_finish, newFinish);
 
-            destroyObjects(newBuffer, newFinish);
-            allocator.deallocate(newBuffer, tmpCapacity);
+                destroyObjects(newBuffer, newFinish);
+                allocator.deallocate(newBuffer, tmpCapacity);
+            }
+            catch(...){
+                destroyObjects(newBuffer, newFinish);
+                allocator.deallocate(newBuffer, tmpCapacity);
+                throw;
+            }
         }
         template<class Iter>
-        void move_forward(Iter start, Iter end){
+        void move_forward(Iter start, Iter end) noexcept {
             if(start == end) return;
 
             while(end != start){
@@ -312,7 +323,7 @@ namespace custom{
             }
         }
         template<class Iter>
-        void move_backward(Iter start, Iter end){
+        void move_backward(Iter start, Iter end) noexcept {
             if(start == end) return;
 
             while(start != end){
