@@ -2,6 +2,13 @@
 #define MYREVERSEITER
 #include <iterator>
 #include <cstddef>
+/**
+ * This is a custom reverse iterator designed to work with my custom vector. Can be used as a standalone reverse iterator.
+ * Iterators like this one are essentially wrappers around pointers to allow for quick operations, 
+ * such as incrementing using ++, decrementing using --, and comparing iterators.
+ * 
+ * Difference between reverse iterator and normal iterator is reverse iterators are designed with moving from end->beginning
+*/
 namespace custom{
     template <typename T>
     class myReverseIterator{

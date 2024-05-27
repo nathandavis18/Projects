@@ -2,6 +2,12 @@
 #define MYITER
 #include <iterator>
 #include <cstddef>
+
+/**
+ * This is a custom iterator designed to work with my custom vector. Can be used as a standalone iterator.
+ * Iterators like this one are essentially wrappers around pointers to allow for quick operations, 
+ * such as incrementing using ++, decrementing using --, and comparing iterators.
+*/
 namespace custom{
     template <typename T>
     class myIterator{

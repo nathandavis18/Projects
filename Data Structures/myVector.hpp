@@ -4,6 +4,14 @@
 #include "myReverseIterator.hpp"
 #include <vector> //Only used for comparing my vector to an std::vector
 #include <algorithm>
+
+/**
+ * This is my custom vector class. This has many of the same functionalities as std::vector. Has support for both standard and custom objects.
+ * A couple of differences may be how space is allocated/deallocated, as well as the push_front and pop_front methods for this custom vector, which is something
+ * std::vector is lacking.
+ * 
+ * I built this custom vector class to learn some memory management through heap allocation/deallocation and to learn templated classes
+*/
 namespace custom{
 
     template <typename T>
@@ -298,35 +306,35 @@ namespace custom{
         const size_t capacity() const noexcept {return m_capacity; }
 
     private:
-        pointer buffer;
-        size_t m_capacity;
+        pointer buffer; //The pointer to where data is stored on the heap
+        size_t m_capacity; //Actual capacity. Capacity will always be >= size, unless shrink_to_fit is called. Then capacity will always equal size
 
-        pointer m_finish;
+        pointer m_finish; //A pointer to T bytes past the last item (1 item's worth of space passed the last item)
 
-        const size_t newCapacity() const noexcept { return m_capacity * 3 / 2 + 1; }
+        const size_t newCapacity() const noexcept { return m_capacity * 3 / 2 + 1; } //Geometric growth so a new allocation doesn't have to be made for every new element
 
-        void destroyObjects(pointer& buff, pointer& finish) noexcept {
+        void destroyObjects(pointer& buff, pointer& finish) noexcept { //Destroys all elements in the vector as needed.
             std::destroy(begin(), end());
         }
-        void realloc(size_t capacity = 0){
+        void realloc(size_t capacity = 0){ //Reallocates the vector when extra space is needed
             pointer newFinish, newBuffer;
             size_t tmpCapacity;
             try{
-                tmpCapacity = capacity == 0 ? newCapacity() : capacity;
-                newBuffer = alloc_traits::allocate(tmpCapacity);
-                newFinish = newBuffer;
+                tmpCapacity = capacity == 0 ? newCapacity() : capacity; //If capacity is 0 (default), get the new capacity value
+                newBuffer = alloc_traits::allocate(tmpCapacity); //Uses the current type's allocator to allocate the proper amount of space.
+                newFinish = newBuffer; //Temporarily sets the new finish to the start of the vector
                 for(size_t i = 0; i < size(); ++i){
-                    alloc_traits::construct(allocator, newBuffer + i, std::move_if_noexcept(*(buffer + i)));
+                    alloc_traits::construct(allocator, newBuffer + i, std::move_if_noexcept(*(buffer + i))); //Properly adds elements to the new vector
                     ++newFinish;
                 }
                 std::swap(m_capacity, tmpCapacity);
                 std::swap(buffer, newBuffer);
                 std::swap(m_finish, newFinish);
 
-                destroyObjects(newBuffer, newFinish);
-                alloc_traits::deallocate(newBuffer, tmpCapacity);
+                destroyObjects(newBuffer, newFinish); //Destroy the old vector after the new vector has been swapped
+                alloc_traits::deallocate(newBuffer, tmpCapacity); //Free the old space
             }
-            catch(...){
+            catch(...){ //If something went wrong while allocating more space, deallocate the newly created space and throw the exception.
                 destroyObjects(newBuffer, newFinish);
                 alloc_traits::deallocate(newBuffer, tmpCapacity);
                 throw;
