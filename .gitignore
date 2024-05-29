@@ -4,3 +4,10 @@ Data Structures/test.cpp
 .vscode/settings.json
 .vscode/launch.json
 myVector.natvis
+/.vs
+/Projects/x64/Debug
+/Projects.sln
+/Projects.vcxproj
+/Projects.vcxproj.filters
+/Projects.vcxproj.user
+/test.cpp
