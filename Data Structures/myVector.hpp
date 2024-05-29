@@ -16,30 +16,21 @@ namespace custom{
     template <typename T>
     class myVector{
     public:
-        using value_type = T;
-        using difference_type = std::ptrdiff_t;
-        using pointer = T*;
-        using const_pointer = const T*;
-        using reference = T&;
-        using const_reference = const T&;
-        std::allocator<value_type> allocator; //The allocator for the current object type. Uses generic allocator if type does not have a custom allocator
-        typedef std::allocator_traits<std::allocator<value_type>> alloc_traits; //The allocator traits used to allocate and construct objects
-
         /**
          * Default constructor 
          * Creates an empty vector
         */
-        myVector() : m_capacity(0), buffer(nullptr), m_finish(nullptr) {}
+        myVector() : m_capacity(0), m_buffer(nullptr), m_finish(nullptr) {}
 
         /**
          * Copy constructor 
          * Copies the capacity of the passed in vector and constructs each object to ensure it is properly stored
         */
-        myVector(const myVector& vec) : m_capacity(vec.capacity()), buffer(nullptr), m_finish(nullptr) {
-            buffer = alloc_traits::allocate(allocator, m_capacity);
-            m_finish = buffer;
+        myVector(const myVector& vec) : m_capacity(vec.capacity()), m_buffer(nullptr), m_finish(nullptr) {
+            m_buffer = alloc_traits::allocate(allocator, m_capacity);
+            m_finish = m_buffer;
             for (int i = 0; i < vec.size(); ++i) {
-                alloc_traits::construct(allocator, buffer + i, *(vec.buffer + i));
+                alloc_traits::construct(allocator, m_buffer + i, *(vec.m_buffer + i));
                 ++m_finish;
             }
         }
@@ -49,13 +40,13 @@ namespace custom{
          * Moves an existing vector into current vector
         */
         myVector(myVector&& moveVec) noexcept : m_capacity(std::move(moveVec.m_capacity)), 
-                 buffer(std::move(moveVec.buffer)), m_finish(std::move(moveVec.m_finish)) {}
+                 m_buffer(std::move(moveVec.m_buffer)), m_finish(std::move(moveVec.m_finish)) {}
 
         /**
          * Capacity constructor 
          * Allocates @param capacity amount of space, and default initializes the vector
         */
-        myVector(const size_t capacity) : m_capacity(capacity), buffer(alloc_traits::allocate(allocator, capacity)), m_finish(buffer + capacity) {
+        myVector(const size_t capacity) : m_capacity(capacity), m_buffer(alloc_traits::allocate(allocator, capacity)), m_finish(m_buffer + capacity) {
             for(myIterator<value_type> it = begin(); it != end(); ++it){
                 std::uninitialized_fill(begin(), end(), typename std::iterator_traits<myIterator<value_type>>::value_type());
             }
@@ -66,10 +57,10 @@ namespace custom{
          * Takes in an initializer list and builds a vector with the data.
          * Initializer lists defined as {x, y, z}
         */
-        myVector(std::initializer_list<value_type> il) : m_capacity(il.end() - il.begin()), buffer(alloc_traits::allocate(allocator, il.size())), m_finish(buffer) {
+        myVector(std::initializer_list<value_type> il) : m_capacity(il.end() - il.begin()), m_buffer(alloc_traits::allocate(allocator, il.size())), m_finish(m_buffer) {
             auto it = il.begin();
             for(int i = 0; i < il.size(); ++i){
-                alloc_traits::construct(allocator, (buffer + i), *it);
+                alloc_traits::construct(allocator, (m_buffer + i), *it);
                 ++it;
                 ++m_finish;
             }
@@ -80,8 +71,8 @@ namespace custom{
          * Destroys each object by calling its destructor and deallocates all of the used space
         */
         ~myVector(){
-            destroyObjects(buffer, m_finish);
-            alloc_traits::deallocate(allocator, buffer, m_capacity);
+            destroyObjects(m_buffer, m_finish);
+            alloc_traits::deallocate(allocator, m_buffer, m_capacity);
         }
 
 
@@ -91,10 +82,10 @@ namespace custom{
         */
         myVector& operator=(const myVector& cpy) noexcept {
             m_capacity = cpy.capacity();
-            buffer = alloc_traits::allocate(allocator, m_capacity);
-            m_finish = buffer;
+            m_buffer = alloc_traits::allocate(allocator, m_capacity);
+            m_finish = m_buffer;
             for (int i = 0; i < cpy.size(); ++i) {
-                alloc_traits::construct(allocator, buffer + i, *(cpy.buffer + i));
+                alloc_traits::construct(allocator, m_buffer + i, *(cpy.m_buffer + i));
                 ++m_finish;
             }
             return *this;
@@ -109,7 +100,7 @@ namespace custom{
             if(this == &moveVec) return *this; //Moving something into itself doesn't make sense
 
             m_capacity = std::move(moveVec.m_capacity);
-            buffer = std::move(moveVec.buffer);
+            m_buffer = std::move(moveVec.m_buffer);
             m_finish = std::move(moveVec.m_finish);
             return *this;
         }
@@ -120,11 +111,11 @@ namespace custom{
         */
         myVector& operator=(std::initializer_list<value_type> il) noexcept {
             m_capacity = il.end() - il.begin(); //The length of the initializer list
-            buffer = alloc_traits::allocate(allocator, m_capacity);
-            m_finish = buffer;
+            m_buffer = alloc_traits::allocate(allocator, m_capacity);
+            m_finish = m_buffer;
             auto it = il.begin();
             for(int i = 0; i < il.size(); ++i){
-                alloc_traits::construct(allocator, buffer + i, *it);
+                alloc_traits::construct(allocator, m_buffer + i, *it);
                 ++it;
                 ++m_finish;
             }
@@ -161,7 +152,7 @@ namespace custom{
          * Index operator does not provide index safety
         */
         [[nodiscard]] reference operator[](size_t index) noexcept {
-            return *(buffer + index);
+            return *(m_buffer + index);
         }
 
         /**
@@ -170,7 +161,7 @@ namespace custom{
          * Index operator does not provide index safety
         */
         [[nodiscard]] const_reference operator[](size_t index) const noexcept {
-            return *(buffer + index);
+            return *(m_buffer + index);
         }
 
         /**
@@ -179,7 +170,7 @@ namespace custom{
         */
         [[nodiscard]] reference at(int index) {
             try{
-                return *(buffer + index);
+                return *(m_buffer + index);
             }
             catch(std::out_of_range exception){
                 throw exception = "Invalid Index";
@@ -192,7 +183,7 @@ namespace custom{
         */
         [[nodiscard]] const_reference at(int index) const {
             try{
-                return *(buffer + index);
+                return *(m_buffer + index);
             }
             catch(std::out_of_range exception){
                 throw exception = "Invalid Index";
@@ -226,7 +217,7 @@ namespace custom{
                 realloc();
             }
             move_forward(begin(), end());
-            alloc_traits::construct(allocator, buffer, data);
+            alloc_traits::construct(allocator, m_buffer, data);
             ++m_finish;
         }
 
@@ -251,7 +242,7 @@ namespace custom{
          * Does not affect capacity
         */
         void pop_front() noexcept {
-            std::destroy_at(buffer);
+            std::destroy_at(m_buffer);
             --m_finish;
             move_backward(begin(), end());
         }
@@ -275,7 +266,7 @@ namespace custom{
         void resize(size_t newSize) {
             if(newSize == size()) return;
             if(newSize < size()){
-                while(m_finish != buffer + newSize){
+                while(m_finish != m_buffer + newSize){
                     std::destroy_at(--m_finish);
                 }
             }
@@ -283,7 +274,7 @@ namespace custom{
                 realloc(newSize);
             }
             std::uninitialized_fill(begin() + size(), begin() + newSize, typename std::iterator_traits<myIterator<value_type>>::value_type());
-            m_finish = buffer + newSize;
+            m_finish = m_buffer + newSize;
         }
 
         /**
@@ -311,11 +302,11 @@ namespace custom{
             pointer newBuffer = alloc_traits::allocate(allocator, tmpCapacity);
             pointer newFinish = newBuffer;
             for(int i = 0; i < size(); ++i){
-                alloc_traits::construct(allocator, newBuffer + i, std::move_if_noexcept(*(buffer + i)));
+                alloc_traits::construct(allocator, newBuffer + i, std::move_if_noexcept(*(m_buffer + i)));
                 ++newFinish;
             }
             std::swap(m_capacity, tmpCapacity);
-            std::swap(buffer, newBuffer);
+            std::swap(m_buffer, newBuffer);
             std::swap(m_finish, newFinish);
             destroyObjects(newBuffer, newFinish);
             alloc_traits::deallocate(allocator, newBuffer, tmpCapacity);
@@ -327,7 +318,7 @@ namespace custom{
         void swap(myVector& v) noexcept{
             std::swap(m_capacity, v.m_capacity);
             std::swap(m_finish, v.m_finish);
-            std::swap(buffer, v.buffer);
+            std::swap(m_buffer, v.m_buffer);
         }
 
         /**
@@ -335,7 +326,7 @@ namespace custom{
          * Does not affect capacity
         */
         void clear() noexcept {
-            while(m_finish > buffer){
+            while(m_finish > m_buffer){
                 std::destroy_at(--m_finish);
             }
         }
@@ -354,7 +345,7 @@ namespace custom{
                 it = begin() + offset;
             }
             move_forward(it, end());
-            alloc_traits::construct(allocator, buffer + (it - begin()), value);
+            alloc_traits::construct(allocator, m_buffer + (it - begin()), value);
             ++m_finish;
         }
 
@@ -372,7 +363,7 @@ namespace custom{
                 it = begin() + offset;
             }
             move_forward(it, end());
-            alloc_traits::construct(allocator, buffer + (it - begin()), std::forward<Args>(args)...);
+            alloc_traits::construct(allocator, m_buffer + (it - begin()), std::forward<Args>(args)...);
             ++m_finish;
         }
 
@@ -417,11 +408,11 @@ namespace custom{
         const_reference back() const noexcept { return *(end() - 1); } //Returns a read-only value for the object at the back of the vector
 
         myIterator<value_type> begin() noexcept { //Returns a random-access iterator pointing to the front of the vector
-            return myIterator<value_type>(buffer);
+            return myIterator<value_type>(m_buffer);
         }
 
         const myIterator<value_type> cbegin() const noexcept{ //Returns a const random-access iterator to the first element in the vector
-            return myIterator<value_type>(buffer);
+            return myIterator<value_type>(m_buffer);
         }
 
         myIterator<value_type> end() noexcept { //Returns a random-access iterator pointing just beyond the vector
@@ -441,11 +432,11 @@ namespace custom{
         }
 
         myReverseIterator<value_type> rend() noexcept { //Returns a random-access reverse iterator pointing in front of the vector
-            return myReverseIterator<value_type>(buffer - 1);
+            return myReverseIterator<value_type>(m_buffer - 1);
         }
 
         const myReverseIterator<value_type> crend() const noexcept { //Returns a const random-access reverse iterator pointing in front of the vector
-            return myReverseIterator<value_type>(buffer - 1);
+            return myReverseIterator<value_type>(m_buffer - 1);
         }
 
         /**
@@ -457,7 +448,7 @@ namespace custom{
         /**
          * Calculates the size of the vector by finding the distance between the end and start of the vector's objects.
         */
-        const size_t size() const noexcept { return size_t(m_finish - buffer); }
+        const size_t size() const noexcept { return size_t(m_finish - m_buffer); }
 
         /**
          * Returns the capacity of the vector
@@ -465,7 +456,17 @@ namespace custom{
         const size_t capacity() const noexcept {return m_capacity; }
 
     private:
-        pointer buffer; //The pointer to where data is stored on the heap
+
+        using value_type = T;
+        using difference_type = std::ptrdiff_t;
+        using pointer = T*;
+        using const_pointer = const T*;
+        using reference = T&;
+        using const_reference = const T&;
+        std::allocator<value_type> allocator; //The allocator for the current object type. Uses generic allocator if type does not have a custom allocator
+        typedef std::allocator_traits<std::allocator<value_type>> alloc_traits; //The allocator traits used to allocate and construct objects
+
+        pointer m_buffer; //The pointer to where data is stored on the heap
         size_t m_capacity; //Actual capacity. Capacity will always be >= size.
 
         pointer m_finish; //A pointer to T bytes past the last item (1 item's worth of space passed the last item)
@@ -476,8 +477,8 @@ namespace custom{
          * Destroys objects from the starting point to the ending point
          * Asserts that the iterators are actually iterators
         */
-       template<class Iterator>
-        void destroyObjects(Iterator start, Iterator end) noexcept {
+       template<class Iter>
+        void destroyObjects(Iter start, Iter end) noexcept {
             std::destroy(start, end);
         }
 
@@ -493,11 +494,11 @@ namespace custom{
                 newBuffer = alloc_traits::allocate(allocator, tmpCapacity); //Uses the current type's allocator to allocate the proper amount of space.
                 newFinish = newBuffer; //Temporarily sets the new finish to the start of the vector
                 for(size_t i = 0; i < size(); ++i){
-                    alloc_traits::construct(allocator, newBuffer + i, std::move_if_noexcept(*(buffer + i))); //Properly adds elements to the new vector
+                    alloc_traits::construct(allocator, newBuffer + i, std::move_if_noexcept(*(m_buffer + i))); //Properly adds elements to the new vector
                     ++newFinish;
                 }
                 std::swap(m_capacity, tmpCapacity);
-                std::swap(buffer, newBuffer);
+                std::swap(m_buffer, newBuffer);
                 std::swap(m_finish, newFinish);
 
                 destroyObjects(newBuffer, newFinish); //Destroy the old vector after the new vector has been swapped
