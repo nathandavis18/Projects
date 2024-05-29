@@ -222,16 +222,15 @@ namespace detail{
         else insertion_sort(first, last);
     }
     //End Insertion Sort Section ---------------------------------------------------------------
-}
 
-/**
- * Entry Point for user is custom::sort
-*/
-namespace custom{
+    /**
+    * The introsort loop
+    * Recursively calls itself until a specified max-depth is hit.
+    */
     template<typename Iter>
-    void introsort(Iter first, Iter last, size_t max_depth){
-        while(last - first > 16){ //While the sub array size is > 16
-            if(max_depth == 0){ //If we have hit the max recursion depth for the array, start doing heap sort instead of quicksort
+    void introsort(Iter first, Iter last, size_t max_depth) {
+        while (last - first > 16) { //While the sub array size is > 16
+            if (max_depth == 0) { //If we have hit the max recursion depth for the array, start doing heap sort instead of quicksort
                 detail::partial_sort(first, last, last);
                 return; //Stop the quicksort after heapsort
             }
@@ -241,11 +240,17 @@ namespace custom{
             last = p; //Splitting the array into [first, p) and [p, last), where p is the quicksort pivot
         }
     }
+}
+
+/**
+ * Entry Point for user is custom::sort
+*/
+namespace custom{
     template<typename Iter>
     void sort(Iter first, Iter last){
         if(first >= last) return; //Empty array
         size_t max_depth = std::log2(last - first) * 2; //Gets the max recursion depth based on the array's size
-        introsort(first, last, max_depth); //Start the bulk sorting
+        detail::introsort(first, last, max_depth); //Start the bulk sorting
         detail::final_insertion_sort(first, last); //Do a quick run through to finish sorting the array
     }
 }

@@ -15,6 +15,15 @@
 namespace custom{
     template <typename T>
     class myVector{
+    private:
+        using value_type = T;
+        using difference_type = std::ptrdiff_t;
+        using pointer = T*;
+        using const_pointer = const T*;
+        using reference = T&;
+        using const_reference = const T&;
+        std::allocator<value_type> allocator; //The allocator for the current object type. Uses generic allocator if type does not have a custom allocator
+        typedef std::allocator_traits<std::allocator<value_type>> alloc_traits; //The allocator traits used to allocate and construct objects
     public:
         /**
          * Default constructor 
@@ -456,16 +465,6 @@ namespace custom{
         const size_t capacity() const noexcept {return m_capacity; }
 
     private:
-
-        using value_type = T;
-        using difference_type = std::ptrdiff_t;
-        using pointer = T*;
-        using const_pointer = const T*;
-        using reference = T&;
-        using const_reference = const T&;
-        std::allocator<value_type> allocator; //The allocator for the current object type. Uses generic allocator if type does not have a custom allocator
-        typedef std::allocator_traits<std::allocator<value_type>> alloc_traits; //The allocator traits used to allocate and construct objects
-
         pointer m_buffer; //The pointer to where data is stored on the heap
         size_t m_capacity; //Actual capacity. Capacity will always be >= size.
 
