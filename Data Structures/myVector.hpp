@@ -56,9 +56,7 @@ namespace custom{
          * Allocates @param capacity amount of space, and default initializes the vector
         */
         myVector(const size_t capacity) : m_capacity(capacity), m_buffer(alloc_traits::allocate(allocator, capacity)), m_finish(m_buffer + capacity) {
-            for(myIterator<value_type> it = begin(); it != end(); ++it){
-                std::uninitialized_fill(begin(), end(), typename std::iterator_traits<myIterator<value_type>>::value_type());
-            }
+            std::uninitialized_fill(begin(), end(), typename std::iterator_traits<myIterator<value_type>>::value_type());
         }
 
         /**
